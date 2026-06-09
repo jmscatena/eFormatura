@@ -1,0 +1,166 @@
+{% extends 'finance/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}"><i class="ph ph-house" style="font-size:14px;"></i></a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">Dashboard</span>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<div class="dashboard-hero animate-up">
+  <div class="dashboard-hero-content">
+    <div class="dashboard-hero-text">
+      <h2>Painel Financeiro da Formatura 🎓</h2>
+      <p>Acompanhe em tempo real a meta do 9º ano — Colégio Villa Lobos</p>
+    </div>
+    <div class="dashboard-hero-emoji" aria-hidden="true">🏆</div>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid animate-up animate-up-delay-1">
+
+  <!-- Total Arrecadado -->
+  <div class="stat-card green">
+    <div class="stat-card-top">
+      <div>
+        <p class="stat-card-label">Total Arrecadado</p>
+        <h2 class="stat-card-value positive" data-count-up="{{ total_arrecadado|default:'0' }}">
+          R$ {{ total_arrecadado|default:"0,00" }}
+        </h2>
+      </div>
+      <div class="stat-card-icon green">
+        <i class="ph-fill ph-trend-up" style="font-size:22px;"></i>
+      </div>
+    </div>
+    <div class="stat-card-footer">
+      <i class="ph ph-info" style="font-size:14px;"></i>
+      Rifas, eventos e mensalidades
+    </div>
+  </div>
+
+  <!-- Custos Operacionais -->
+  <div class="stat-card red">
+    <div class="stat-card-top">
+      <div>
+        <p class="stat-card-label">Custos Operacionais</p>
+        <h2 class="stat-card-value negative" data-count-up="{{ total_custo_operacional|default:'0' }}">
+          R$ {{ total_custo_operacional|default:"0,00" }}
+        </h2>
+      </div>
+      <div class="stat-card-icon red">
+        <i class="ph-fill ph-trend-down" style="font-size:22px;"></i>
+      </div>
+    </div>
+    <div class="stat-card-footer">
+      <i class="ph ph-info" style="font-size:14px;"></i>
+      Deduzidos do fundo livre
+    </div>
+  </div>
+
+  <!-- Fundos Livres -->
+  <div class="stat-card blue">
+    <div class="stat-card-top">
+      <div>
+        <p class="stat-card-label">Fundos Livres</p>
+        <h2 class="stat-card-value info" data-count-up="{{ fundos_livres|default:'0' }}">
+          R$ {{ fundos_livres|default:"0,00" }}
+        </h2>
+      </div>
+      <div class="stat-card-icon blue">
+        <i class="ph-fill ph-wallet" style="font-size:22px;"></i>
+      </div>
+    </div>
+    <div class="stat-card-footer">
+      <i class="ph ph-info" style="font-size:14px;"></i>
+      Arrecadado menos custos
+    </div>
+  </div>
+
+  <!-- Progresso da Meta -->
+  <div class="stat-card stat-card-hero">
+    <div class="stat-card-top">
+      <div>
+        <p class="stat-card-label">Progresso da Meta</p>
+        <h2 class="stat-card-value" style="color:white;">{{ progresso_meta|default:"0" }}%</h2>
+      </div>
+      <div class="stat-card-icon" style="background:rgba(255,255,255,0.12);color:white;box-shadow:none;">
+        <i class="ph-fill ph-chart-bar" style="font-size:22px;"></i>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>R$ {{ fundos_livres|default:"0,00" }} livres</span>
+        <span>Meta: R$ {{ total_contratos_meta|default:"0,00" }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" data-width="{{ progresso_meta|default:0 }}" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="stat-card-footer">
+      <i class="ph-fill ph-star" style="font-size:14px;"></i>
+      Rumo a uma formatura inesquecível!
+    </div>
+  </div>
+
+</div><!-- /stats-grid -->
+
+<!-- Quick Access -->
+<p class="section-label animate-up animate-up-delay-2">Acesso Rápido</p>
+<div class="quick-access-grid animate-up animate-up-delay-2">
+
+  <a href="{% url 'incomes_list' %}" class="quick-card">
+    <div class="quick-card-icon" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);">💰</div>
+    <div class="quick-card-info">
+      <div class="quick-card-label">Receitas</div>
+      <div class="quick-card-desc">Ver arrecadações</div>
+    </div>
+    <i class="ph ph-arrow-right" style="font-size:16px;color:var(--text-3);flex-shrink:0;"></i>
+  </a>
+
+  <a href="{% url 'expenses_list' %}" class="quick-card">
+    <div class="quick-card-icon" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);">📋</div>
+    <div class="quick-card-info">
+      <div class="quick-card-label">Despesas</div>
+      <div class="quick-card-desc">Contratos e parcelas</div>
+    </div>
+    <i class="ph ph-arrow-right" style="font-size:16px;color:var(--text-3);flex-shrink:0;"></i>
+  </a>
+
+  <a href="{% url 'notifications_list' %}" class="quick-card">
+    <div class="quick-card-icon" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);">🔔</div>
+    <div class="quick-card-info">
+      <div class="quick-card-label">Notificações</div>
+      <div class="quick-card-desc">Alertas do sistema</div>
+    </div>
+    <i class="ph ph-arrow-right" style="font-size:16px;color:var(--text-3);flex-shrink:0;"></i>
+  </a>
+
+  {% if is_admin %}
+  <a href="{% url 'income_create' %}" class="quick-card">
+    <div class="quick-card-icon" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">➕</div>
+    <div class="quick-card-info">
+      <div class="quick-card-label">Nova Receita</div>
+      <div class="quick-card-desc">Registrar arrecadação</div>
+    </div>
+    <i class="ph ph-arrow-right" style="font-size:16px;color:var(--text-3);flex-shrink:0;"></i>
+  </a>
+
+  <a href="{% url 'expense_create' %}" class="quick-card">
+    <div class="quick-card-icon" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);">🏢</div>
+    <div class="quick-card-info">
+      <div class="quick-card-label">Novo Contrato</div>
+      <div class="quick-card-desc">Registrar despesa</div>
+    </div>
+    <i class="ph ph-arrow-right" style="font-size:16px;color:var(--text-3);flex-shrink:0;"></i>
+  </a>
+  {% endif %}
+
+</div>
+
+{% endblock %}

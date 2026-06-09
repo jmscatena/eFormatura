@@ -1,0 +1,82 @@
+{% extends 'finance/base.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+
+  <div class="auth-logo-wrap">
+    <div class="auth-logo">
+      <i class="ph-fill ph-graduation-cap" style="font-size:38px;color:white;"></i>
+    </div>
+    <div class="auth-badge">
+      <span class="auth-badge-dot"></span>
+      Formatura 2026 · 9º Ano
+    </div>
+    <h1 class="auth-title">Bem-vindo(a)! 🎓</h1>
+    <p class="auth-subtitle">Acesse o sistema financeiro da formatura do Colégio Villa Lobos</p>
+  </div>
+
+  <form method="POST" action="{% url 'login' %}" id="loginForm" novalidate>
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label class="form-label" for="email">
+        <i class="ph ph-envelope" style="font-size:14px;color:var(--text-3);"></i>
+        E-mail
+      </label>
+      <div class="input-icon-wrap">
+        <i class="ph ph-envelope" style="position:absolute;left:0.875rem;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-3);pointer-events:none;"></i>
+        <input type="email" id="email" name="email" required
+          class="form-input" placeholder="seu@email.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.75rem;">
+      <label class="form-label" for="password">
+        <i class="ph ph-lock" style="font-size:14px;color:var(--text-3);"></i>
+        Senha
+      </label>
+      <div class="input-icon-wrap" style="position:relative;">
+        <i class="ph ph-lock" style="position:absolute;left:0.875rem;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-3);pointer-events:none;z-index:1;"></i>
+        <input type="password" id="password" name="password" required
+          class="form-input" placeholder="••••••••" autocomplete="current-password"
+          style="padding-left:2.5rem;padding-right:2.75rem;">
+        <button type="button" id="togglePassword"
+          style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);padding:0.25rem;transition:color 0.15s ease;"
+          aria-label="Mostrar senha">
+          <i class="ph ph-eye" id="togglePwIcon" style="font-size:17px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+      <i class="ph ph-sign-in" style="font-size:16px;"></i>
+      Acessar Plataforma
+    </button>
+  </form>
+
+  <div class="auth-footer-link">
+    Não tem acesso? <a href="{% url 'register' %}">Solicite ao administrador</a>
+  </div>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+  // Toggle password visibility
+  const toggleBtn = document.getElementById('togglePassword');
+  const pwInput   = document.getElementById('password');
+  const pwIcon    = document.getElementById('togglePwIcon');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function () {
+      const isHidden = pwInput.type === 'password';
+      pwInput.type = isHidden ? 'text' : 'password';
+      pwIcon.className = isHidden ? 'ph ph-eye-slash' : 'ph ph-eye';
+      this.style.color = isHidden ? 'var(--brand-500)' : 'var(--text-3)';
+    });
+  }
+</script>
+{% endblock %}
+{% endblock auth_content %}

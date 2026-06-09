@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de Controle Financeiro — Formatura 9º Ano Colégio Villa Lobos">
+  <title>{% block title %}Financeiro{% endblock %} — Formatura Villa Lobos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if request.is_logged_in %}
+  <!-- ── AUTHENTICATED LAYOUT ─────────────────────────── -->
+  <div class="app-layout">
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-header">
+        <div class="sidebar-logo">🎓</div>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-name">Villa Lobos</span>
+          <span class="sidebar-brand-sub">Sistema Financeiro</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-section">Principal</div>
+
+        <a href="{% url 'dashboard' %}" class="sidebar-link" id="nav-dashboard">
+          <i class="ph-fill ph-squares-four" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+          Dashboard
+        </a>
+
+        <a href="{% url 'incomes_list' %}" class="sidebar-link" id="nav-incomes">
+          <i class="ph-fill ph-trend-up" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+          Receitas
+        </a>
+
+        <a href="{% url 'expenses_list' %}" class="sidebar-link" id="nav-expenses">
+          <i class="ph-fill ph-receipt" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+          Despesas
+        </a>
+
+        <a href="{% url 'notifications_list' %}" class="sidebar-link" id="nav-notifications">
+          <i class="ph-fill ph-bell" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+          Notificações
+          <span class="sidebar-badge" id="notif-badge" style="display:none">!</span>
+        </a>
+
+          {% if request.is_admin %}
+          <div class="sidebar-section">Administração</div>
+          <a href="{% url 'users_list' %}" class="sidebar-link" id="nav-users_list">
+            <i class="ph-fill ph-users" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+           Gestão de Usuários
+          </a>
+          <a href="{% url 'user_create' %}" class="sidebar-link" id="nav-users">
+            <i class="ph-fill ph-user-plus" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+           Novo Usuário
+          </a>
+          {% endif %}
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar">
+            {% if request.is_admin %}
+            <i class="ph-fill ph-shield-star" style="font-size:16px;color:white;"></i>
+            {% else %}
+            <i class="ph-fill ph-user" style="font-size:16px;color:white;"></i>
+            {% endif %}
+          </div>
+          <div class="sidebar-user-info">
+            <span class="sidebar-user-name">
+              {% if request.is_admin %}Administrador{% else %}Usuário{% endif %}
+            </span>
+            <span class="sidebar-user-role">
+              {% if request.is_admin %}⚡ Acesso total{% else %}👁 Somente leitura{% endif %}
+            </span>
+          </div>
+        </div>
+        <a href="{% url 'logout' %}" class="sidebar-link sidebar-link-danger">
+          <i class="ph-fill ph-sign-out" style="font-size:17px;flex-shrink:0;opacity:0.8;"></i>
+          Sair
+        </a>
+      </div>
+    </aside><!-- /sidebar -->
+
+    <!-- ── MAIN WRAPPER ── -->
+    <div class="main-wrapper">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <button class="topbar-toggle" id="sidebarToggle" aria-label="Abrir menu">
+          <i class="ph ph-list" style="font-size:20px;"></i>
+        </button>
+
+        <div class="topbar-breadcrumb">
+          {% block breadcrumb %}
+            <span class="breadcrumb-current">Dashboard</span>
+          {% endblock %}
+        </div>
+
+        <div class="topbar-actions">
+          <span class="topbar-role-badge {% if request.is_admin %}admin{% endif %}">
+            {% if request.is_admin %}
+              <i class="ph-fill ph-shield-star" style="font-size:10px;"></i>
+              Admin
+            {% else %}
+              Usuário
+            {% endif %}
+          </span>
+        </div>
+      </header>
+
+      <!-- Alerts -->
+      {% if messages %}
+        <div class="alerts-container" role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}">
+              {% if message.tags == 'success' %}
+                <i class="ph-fill ph-check-circle" style="font-size:18px;flex-shrink:0;"></i>
+              {% elif message.tags == 'error' %}
+                <i class="ph-fill ph-x-circle" style="font-size:18px;flex-shrink:0;"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="ph-fill ph-warning" style="font-size:18px;flex-shrink:0;"></i>
+              {% else %}
+                <i class="ph-fill ph-info" style="font-size:18px;flex-shrink:0;"></i>
+              {% endif %}
+              {{ message }}
+              <button class="alert-close" aria-label="Fechar">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Page Content -->
+      <main class="content" role="main">
+        {% block content %}{% endblock %}
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        © 2026 Colégio Villa Lobos &nbsp;·&nbsp; Formatura 9º Ano &nbsp;·&nbsp; Sistema Financeiro v3.0
+      </footer>
+
+    </div><!-- /main-wrapper -->
+  </div><!-- /app-layout -->
+
+{% else %}
+  <!-- ── UNAUTHENTICATED LAYOUT ─────────────────────────── -->
+  <main class="auth-layout" role="main">
+    {% if messages %}
+      <div style="position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:360px;">
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}" style="margin:0;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block auth_content %}{% endblock %}
+  </main>
+{% endif %}
+
+<script src="{% static 'js/app.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

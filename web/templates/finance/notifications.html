@@ -1,0 +1,100 @@
+{% extends 'finance/base.html' %}
+{% load static %}
+
+{% block title %}Notificações{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}">Dashboard</a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">Notificações</span>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header animate-up">
+  <div class="page-header-left">
+    <h1 class="page-title">
+      <span style="margin-right:0.5rem;">🔔</span> Notificações
+    </h1>
+    <p class="page-subtitle">Mensagens e alertas importantes do sistema</p>
+  </div>
+  {% if notifications %}
+  <div class="page-actions">
+    <span class="badge badge-info" style="font-size:0.8125rem;padding:6px 14px;">
+      <span class="badge-dot" style="background:var(--blue);"></span>
+      {{ notifications|length }} notificação{% if notifications|length != 1 %}ões{% endif %}
+    </span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="animate-up animate-up-delay-1">
+
+  {% if notifications %}
+    <div class="notification-list">
+      {% for notification in notifications %}
+      <div class="notification-card {% if not notification.read %}unread{% endif %}">
+
+        {% if not notification.read %}
+        <div class="unread-dot"></div>
+        {% endif %}
+
+        <div class="notification-icon-wrap {% if notification.type == 'success' %}success{% elif notification.type == 'error' %}error{% elif notification.type == 'warning' %}warning{% endif %}">
+          {% if notification.type == 'success' %}
+            ✅
+          {% elif notification.type == 'error' %}
+            ❌
+          {% elif notification.type == 'warning' %}
+            ⚠️
+          {% else %}
+            ℹ️
+          {% endif %}
+        </div>
+
+        <div class="notification-body">
+          <p class="notification-title">{{ notification.title|default:"Notificação" }}</p>
+          <p class="notification-message">{{ notification.message }}</p>
+          <div class="notification-meta">
+            <span class="notification-date">
+              <i class="ph ph-calendar-blank" style="font-size:12px;"></i>
+              {{ notification.created_at|slice:":10" }}
+            </span>
+            {% if notification.read %}
+              <span class="badge badge-neutral">
+                <i class="ph-fill ph-check" style="font-size:10px;"></i>
+                Lida
+              </span>
+            {% else %}
+              <span class="badge badge-info">
+                <span class="badge-dot" style="background:var(--blue);"></span>
+                Não lida
+              </span>
+            {% endif %}
+            <span class="badge" style="background:
+              {% if notification.type == 'success' %}var(--green-bg);color:var(--green-text);
+              {% elif notification.type == 'error' %}var(--red-bg);color:var(--red-text);
+              {% elif notification.type == 'warning' %}var(--yellow-bg);color:var(--yellow-text);
+              {% else %}var(--blue-bg);color:var(--blue-text);{% endif %}">
+              {{ notification.type|default:"info" }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="table-card">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎉</div>
+        <p class="empty-state-title">Tudo tranquilo por aqui!</p>
+        <p class="empty-state-text">Nenhuma notificação pendente no momento. Continue assim!</p>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

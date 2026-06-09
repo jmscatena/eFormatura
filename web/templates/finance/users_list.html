@@ -1,0 +1,324 @@
+{% extends 'finance/base.html' %}
+{% load static %}
+
+{% block title %}Gestao de Usuarios{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <span class="breadcrumb-sep">&ge;</span>
+    <span class="breadcrumb-current">Gestao de Usuarios</span>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header animate-up">
+    <div class="page-header-left">
+         <h1 class="page-title">
+             <span style="margin-right:0.5rem;">&#x1F465;</span> Gestao de Usuarios
+         </h1>
+         <p class="page-subtitle">Visualize, edite e gerencie todos os usuarios do sistema</p>
+     </div>
+</div>
+
+<!-- Stats Pills -->
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;" class="animate-up animate-up-delay-1">
+     <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-full);padding:0.375rem 1rem;font-size:0.8125rem;font-weight:600;color:var(--text-2);box-shadow:var(--shadow-xs);">
+         <i class="ph-fill ph-users" style="font-size:14px;color:var(--brand-500);"></i>
+         Total: {{ total_users }}
+     </div>
+     <div style="display:flex;align-items:center;gap:0.5rem;background:var(--green-bg);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-full);padding:0.375rem 1rem;font-size:0.8125rem;font-weight:700;color:var(--green-text);">
+         <i class="ph-fill ph-check-circle" style="font-size:14px;"></i>
+         Ativos: {{ active_users }}
+     </div>
+     <div style="display:flex;align-items:center;gap:0.5rem;background:var(--red-bg);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-full);padding:0.375rem 1rem;font-size:0.8125rem;font-weight:700;color:var(--red-text);">
+         <i class="ph-fill ph-x-circle" style="font-size:14px;"></i>
+         Desativados: {{ disabled_users }}
+     </div>
+</div>
+
+<!-- Users Table -->
+<div class="table-card animate-up animate-up-delay-1">
+     <div class="table-card-header">
+         <span class="table-card-title">
+             <i class="ph-fill ph-table" style="font-size:16px;color:var(--brand-500);"></i>
+             Usuarios do Sistema
+         </span>
+     </div>
+
+     <div class="table-scroll">
+         <table class="data-table">
+             <thead>
+                 <tr>
+                     <th><i class="ph ph-user" style="font-size:11px;margin-right:4px;"></i>Nome</th>
+                     <th><i class="ph ph-envelope" style="font-size:11px;margin-right:4px;"></i>Email</th>
+                     <th><i class="ph ph-shield" style="font-size:11px;margin-right:4px;"></i>Perfil</th>
+                     <th><i class="ph ph-status" style="font-size:11px;margin-right:4px;"></i>Status</th>
+                     <th class="text-right">Acoes</th>
+                 </tr>
+             </thead>
+             <tbody>
+                 {% for user in users %}
+                 <tr style="{% if user.disabled %}opacity:0.5;{% endif %}">
+                     <td>
+                         <div style="display:flex;align-items:center;gap:0.75rem;">
+                             <div style="width:36px;height:36px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:700;color:white;flex-shrink:0;">
+                                 {{ user.name|slice:":2"|upper|default:"U" }}
+                             </div>
+                             <div>
+                                 <div style="font-weight:600;color:var(--text-1);">
+                                     {{ user.name }}
+                                 </div>
+                             </div>
+                         </div>
+                     </td>
+                     <td>
+                         <div style="font-size:0.875rem;color:var(--text-2);">
+                             {{ user.email }}
+                         </div>
+                     </td>
+                     <td>
+                         {% if user.role == 'admin' %}
+                             <span class="badge" style="background:var(--brand-50);color:var(--brand-700);border:1px solid var(--brand-200);">
+                                 <i class="ph-fill ph-shield-star" style="font-size:10px;"></i>
+                                 Admin
+                             </span>
+                         {% else %}
+                             <span class="badge badge-neutral">
+                                 <i class="ph-fill ph-user" style="font-size:10px;"></i>
+                                 Comum
+                             </span>
+                         {% endif %}
+                     </td>
+                     <td>
+                         {% if user.disabled %}
+                             <span class="badge badge-danger">
+                                 <span class="badge-dot" style="background:var(--red);"></span>
+                                 Desativado
+                             </span>
+                         {% else %}
+                             <span class="badge badge-success">
+                                 <span class="badge-dot" style="background:var(--green);"></span>
+                                 Ativo
+                             </span>
+                         {% endif %}
+                     </td>
+                     <td class="text-right">
+                         <div style="display:flex;gap:0.5rem;justify-content:flex-end;align-items:center;">
+                             <button onclick="openEditModal({{ user.id }}, '{{ user.name|escapejs }}', '{{ user.email|escapejs }}')" class="btn btn-secondary btn-sm" title="Editar">
+                                 <i class="ph-bold ph-pencil-simple" style="font-size:13px;"></i>
+                                 Editar
+                             </button>
+                             <button onclick="openPasswordModal({{ user.id }}, '{{ user.name|escapejs }}')" class="btn btn-secondary btn-sm" title="Resetar Senha">
+                                 <i class="ph-bold ph-key" style="font-size:13px;"></i>
+                                 Senha
+                             </button>
+                             <button onclick="openDisableModal({{ user.id }}, '{{ user.name|escapejs }}', {% if user.disabled %}true{% else %}false{% endif %})" class="btn {% if user.disabled %}btn-secondary{% else %}btn-danger{% endif %} btn-sm" title="{% if user.disabled %}Reativar{% else %}Desativar{% endif %}">
+                                 <i class="ph-bold ph-{{ user.disabled|yesno:'eye-slash,eye' }}-simple" style="font-size:13px;"></i>
+                                 {% if user.disabled %}ReATIVAR{% else %}Desativar{% endif %}
+                             </button>
+                         </div>
+                     </td>
+                 </tr>
+                 {% empty %}
+                 <tr>
+                     <td colspan="5">
+                         <div class="empty-state">
+                             <div class="empty-state-icon">&#x1F465;</div>
+                             <p class="empty-state-title">Nenhum usuario encontrado</p>
+                             <p class="empty-state-text">
+                                 <a href="{% url 'register' %}" style="color:var(--brand-600);font-weight:600;">
+                                     ＋ Criar primeiro usuario
+                                 </a>
+                             </p>
+                         </div>
+                     </td>
+                 </tr>
+                 {% endfor %}
+             </tbody>
+         </table>
+     </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;">
+     <div style="background:white;border-radius:var(--radius-lg);padding:2rem;width:90%;max-width:480px;">
+         <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1.5rem;color:var(--text-1);">
+             <i class="ph-fill ph-pencil-simple" style="font-size:16px;color:var(--brand-500);"></i>
+             Editar Usuario
+         </h3>
+         <form id="editForm" method="POST" action="{% url 'users_list' %}">
+             {% csrf_token %}
+             <input type="hidden" name="action" value="update">
+             <input type="hidden" name="user_id" id="editUserId">
+             <div style="margin-bottom:1rem;">
+                 <label style="display:block;font-size:0.875rem;font-weight:600;margin-bottom:0.375rem;">Nome</label>
+                 <input type="text" name="name" id="editName" required class="form-input">
+             </div>
+             <div style="margin-bottom:1.5rem;">
+                 <label style="display:block;font-size:0.875rem;font-weight:600;margin-bottom:0.375rem;">Email</label>
+                 <input type="email" name="email" id="editEmail" required class="form-input">
+             </div>
+             <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                 <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancelar</button>
+                 <button type="submit" class="btn btn-primary">Salvar</button>
+             </div>
+         </form>
+     </div>
+</div>
+
+<!-- Password Modal -->
+<div id="passwordModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;">
+     <div style="background:white;border-radius:var(--radius-lg);padding:2rem;width:90%;max-width:480px;">
+         <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1rem;color:var(--text-1);">
+             <i class="ph-fill ph-key" style="font-size:16px;color:var(--brand-500);"></i>
+             Resetar Senha
+         </h3>
+         <div id="passwordUserName" style="background:var(--blue-bg);border:1px solid rgba(59,130,246,0.2);border-radius:var(--radius-sm);padding:0.75rem;margin-bottom:1rem;font-size:0.875rem;color:var(--blue-text);">
+             Usuario
+         </div>
+         <div style="background:var(--yellow-bg);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:0.75rem;margin-bottom:1.5rem;font-size:0.875rem;color:var(--yellow-text);">
+             <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+             A nova senha sera valida imediatamente apos a alteracao.
+         </div>
+         <form id="passwordForm" method="POST" action="{% url 'users_list' %}">
+             {% csrf_token %}
+             <input type="hidden" name="action" value="reset_password">
+             <input type="hidden" name="user_id" id="passwordUserId">
+             <div style="margin-bottom:1rem;">
+                 <label style="display:block;font-size:0.875rem;font-weight:600;margin-bottom:0.375rem;">Nova Senha</label>
+                 <input type="password" name="password" id="passwordNew" required minlength="8" class="form-input" placeholder="Minimo 8 caracteres">
+             </div>
+             <div style="margin-bottom:1.5rem;">
+                 <label style="display:block;font-size:0.875rem;font-weight:600;margin-bottom:0.375rem;">Confirmar Senha</label>
+                 <input type="password" name="confirm_password" id="passwordConfirm" required minlength="8" class="form-input" placeholder="Repita a senha">
+             </div>
+             <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                 <button type="button" onclick="closePasswordModal()" class="btn btn-secondary">Cancelar</button>
+                 <button type="submit" class="btn btn-primary">Resetar</button>
+             </div>
+         </form>
+     </div>
+</div>
+
+<!-- Disable Modal -->
+<div id="disableModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;">
+     <div style="background:white;border-radius:var(--radius-lg);padding:2rem;width:90%;max-width:480px;">
+         <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1rem;color:var(--text-1);">
+             <i class="ph-fill ph-users" style="font-size:16px;color:var(--brand-500);"></i>
+             <span id="disableTitle">Desativar Usuario</span>
+         </h3>
+         <div id="disableModalBody" style="background:var(--red-bg);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);padding:0.75rem;margin-bottom:1.5rem;font-size:0.875rem;color:var(--red-text);">
+             <i class="ph-fill ph-warning" style="font-size:14px;"></i>
+             <span id="disableMessage"></span>
+         </div>
+         <form id="disableForm" method="POST" action="{% url 'users_list' %}">
+             {% csrf_token %}
+             <input type="hidden" name="action" value="disable">
+             <input type="hidden" name="user_id" id="disableUserId">
+             <input type="hidden" name="disabled" id="disableValue">
+             <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                 <button type="button" onclick="closeDisableModal()" class="btn btn-secondary">Cancelar</button>
+                 <button type="submit" class="btn btn-danger">Confirmar</button>
+             </div>
+         </form>
+     </div>
+</div>
+
+<span id="userCountBadge" style="display:none;">Total: {{ total_users }} usuarios</span>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+     var currentUserId = 0;
+
+     function openEditModal(id, name, email) {
+         currentUserId = id;
+         document.getElementById('editUserId').value = id;
+         document.getElementById('editName').value = name;
+         document.getElementById('editEmail').value = email;
+         document.getElementById('editModal').style.display = 'flex';
+     }
+
+     function closeEditModal() {
+         document.getElementById('editModal').style.display = 'none';
+     }
+
+     function openPasswordModal(id, name) {
+         currentUserId = id;
+         document.getElementById('passwordUserId').value = id;
+         document.getElementById('passwordUserName').textContent = name;
+         document.getElementById('passwordNew').value = '';
+         document.getElementById('passwordConfirm').value = '';
+         document.getElementById('passwordModal').style.display = 'flex';
+     }
+
+     function closePasswordModal() {
+         document.getElementById('passwordModal').style.display = 'none';
+     }
+
+     function openDisableModal(id, name, isDisabled) {
+         currentUserId = id;
+         document.getElementById('disableUserId').value = id;
+         var isReactivate = isDisabled;
+         document.getElementById('disableValue').value = !isReactivate;
+         var title = document.getElementById('disableTitle');
+         var msg = document.getElementById('disableMessage');
+         var body = document.getElementById('disableModalBody');
+
+         if (isReactivate) {
+             title.textContent = 'Reativar Usuario';
+             msg.textContent = 'Deseja reativar a conta de ' + name + '? O usuario podera acessar o sistema novamente.';
+             body.style.background = 'var(--green-bg)';
+             body.style.borderColor = 'rgba(16,185,129,0.2)';
+             body.style.color = 'var(--green-text)';
+         } else {
+             title.textContent = 'Desativar Usuario';
+             msg.textContent = 'Deseja desativar a conta de ' + name + '? O usuario perdera acesso ao sistema.';
+             body.style.background = 'var(--red-bg)';
+             body.style.borderColor = 'rgba(239,68,68,0.2)';
+             body.style.color = 'var(--red-text)';
+         }
+
+         document.getElementById('disableModal').style.display = 'flex';
+     }
+
+     function closeDisableModal() {
+         document.getElementById('disableModal').style.display = 'none';
+     }
+
+     // Close modals on overlay click
+     document.addEventListener('click', function(e) {
+         ['editModal', 'passwordModal', 'disableModal'].forEach(function(id) {
+             var modal = document.getElementById(id);
+             if (e.target === modal) {
+                 modal.style.display = 'none';
+             }
+         });
+     });
+
+     // Close modals on ESC
+     document.addEventListener('keydown', function(e) {
+         if (e.key === 'Escape') {
+             ['editModal', 'passwordModal', 'disableModal'].forEach(function(id) {
+                 document.getElementById(id).style.display = 'none';
+             });
+         }
+     });
+
+     // Password confirmation validation
+     document.getElementById('passwordForm')?.addEventListener('submit', function(e) {
+         var pw = document.getElementById('passwordNew').value;
+         var confirm = document.getElementById('passwordConfirm').value;
+         if (pw !== confirm) {
+             e.preventDefault();
+             alert('As senhas nao coincidem.');
+         }
+         if (pw.length < 8) {
+             e.preventDefault();
+             alert('A senha deve ter pelo menos 8 caracteres.');
+         }
+     });
+</script>
+{% endblock %}

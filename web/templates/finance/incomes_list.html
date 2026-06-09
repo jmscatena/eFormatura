@@ -1,0 +1,159 @@
+{% extends 'finance/base.html' %}
+{% load static %}
+{% load finance_filters %}
+
+{% block title %}Receitas{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{% url 'dashboard' %}">Dashboard</a>
+  <span class="breadcrumb-sep">›</span>
+  <span class="breadcrumb-current">Receitas</span>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header animate-up">
+  <div class="page-header-left">
+    <h1 class="page-title">
+      <span style="margin-right:0.5rem;">💰</span> Receitas
+    </h1>
+    <p class="page-subtitle">Arrecadações: rifas, eventos e mensalidades da formatura</p>
+  </div>
+  {% if is_admin %}
+  <div class="page-actions">
+    <a href="{% url 'income_create' %}" class="btn btn-primary">
+      <i class="ph-bold ph-plus" style="font-size:15px;"></i>
+      Nova Arrecadação
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Summary Pills -->
+{% if incomes %}
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;" class="animate-up animate-up-delay-1">
+  <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-full);padding:0.375rem 1rem;font-size:0.8125rem;font-weight:600;color:var(--text-2);box-shadow:var(--shadow-xs);">
+    <i class="ph-fill ph-list-numbers" style="font-size:14px;color:var(--brand-500);"></i>
+    {{ incomes|length }} arrecadação{% if incomes|length != 1 %}ões{% endif %}
+  </div>
+  <div style="display:flex;align-items:center;gap:0.5rem;background:var(--green-bg);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-full);padding:0.375rem 1rem;font-size:0.8125rem;font-weight:700;color:var(--green-text);">
+    <i class="ph-fill ph-currency-circle-dollar" style="font-size:14px;"></i>
+    Total: R$ {{ total_incomes }}
+  </div>
+</div>
+{% endif %}
+
+<div class="table-card animate-up animate-up-delay-1">
+  <div class="table-card-header">
+    <span class="table-card-title">
+      <i class="ph-fill ph-table" style="font-size:16px;color:var(--brand-500);"></i>
+      Todas as Arrecadações
+      {% if incomes %}
+        <span class="badge badge-neutral" style="font-size:0.75rem;">{{ incomes|length }}</span>
+      {% endif %}
+    </span>
+    {% if is_admin %}
+    <a href="{% url 'income_create' %}" class="btn btn-sm btn-secondary">
+      <i class="ph-bold ph-plus" style="font-size:13px;"></i>
+      Adicionar
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th><i class="ph ph-tag" style="font-size:11px;margin-right:4px;"></i>Título</th>
+          <th><i class="ph ph-bookmark" style="font-size:11px;margin-right:4px;"></i>Categoria</th>
+          <th><i class="ph ph-calendar" style="font-size:11px;margin-right:4px;"></i>Data</th>
+          <th class="text-right"><i class="ph ph-currency-dollar" style="font-size:11px;margin-right:4px;"></i>Valor</th>
+          {% if is_admin %}<th class="text-right">Ações</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for income in incomes %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.625rem;">
+              <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;
+                {% if income.category == 'Rifa' %}background:linear-gradient(135deg,#faf5ff,#ede9fe);
+                {% elif income.category == 'Evento' %}background:linear-gradient(135deg,#eff6ff,#dbeafe);
+                {% else %}background:linear-gradient(135deg,#ecfdf5,#d1fae5);{% endif %}">
+                {% if income.category == 'Rifa' %}🎟️
+                {% elif income.category == 'Evento' %}🎉
+                {% elif income.category == 'Mensalidade' %}📆
+                {% else %}💳{% endif %}
+              </div>
+              <span style="font-weight:600;color:var(--text-1);">{{ income.title }}</span>
+            </div>
+          </td>
+          <td>
+            {% if income.category == 'Rifa' %}
+              <span class="badge badge-rifa">
+                <span class="badge-dot" style="background:#6b21a8;"></span>
+                🎟️ Rifa
+              </span>
+            {% elif income.category == 'Evento' %}
+              <span class="badge badge-evento">
+                <span class="badge-dot" style="background:#1e40af;"></span>
+                🎉 Evento
+              </span>
+            {% elif income.category == 'Mensalidade' %}
+              <span class="badge badge-mensalidade">
+                <span class="badge-dot" style="background:#065f46;"></span>
+                📆 Mensalidade
+              </span>
+            {% else %}
+              <span class="badge badge-outros">{{ income.category }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.375rem;color:var(--text-3);font-size:0.875rem;">
+              <i class="ph ph-calendar-blank" style="font-size:13px;"></i>
+              {{ income.date|slice:":10" }}
+            </div>
+          </td>
+          <td class="text-right">
+            <span style="font-weight:800;font-size:1rem;color:var(--green);font-variant-numeric:tabular-nums;">
+              R$ {{ income.amount|brl }}
+            </span>
+          </td>
+          {% if is_admin %}
+          <td class="text-right">
+            <form method="POST" action="{% url 'income_delete' income.id %}" style="display:inline;"
+              onsubmit="return confirm('Excluir esta arrecadação?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-ghost-danger btn-sm">
+                <i class="ph-fill ph-trash" style="font-size:14px;"></i>
+                Excluir
+              </button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if is_admin %}5{% else %}4{% endif %}" style="padding:0;">
+            <div class="empty-state">
+              <div class="empty-state-icon">💰</div>
+              <p class="empty-state-title">Nenhuma arrecadação registrada</p>
+              <p class="empty-state-text">
+                {% if is_admin %}
+                  <a href="{% url 'income_create' %}" style="color:var(--brand-600);font-weight:600;">
+                    ＋ Adicionar primeira arrecadação
+                  </a>
+                {% else %}
+                  Aguarde o administrador registrar as arrecadações.
+                {% endif %}
+              </p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
