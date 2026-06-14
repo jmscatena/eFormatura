@@ -11,15 +11,13 @@ import (
 // ListNotifications returns user's notifications
 func ListNotifications(c *gin.Context) {
 	userID := c.GetUint("userID")
-	var notifications []models.Notification
-
-	// Buscar do banco
-	if err := config.DB.Where("user_id = ?", userID).Order("created_at DESC").Find(&notifications).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
-		return
-	}
-
-	c.JSON(http.StatusOK, notifications)
+	params := ParsePaginateParams(c)
+	
+	// Apply ordering and user filter
+	db := config.DB.Where("user_id = ?", userID).Order("created_at DESC")
+	
+	resp := Paginate(db, params, &[]models.Notification{})
+	c.JSON(http.StatusOK, resp)
 }
 
 // MarkNotificationAsRead marks a single notification as read

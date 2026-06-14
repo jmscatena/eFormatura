@@ -13,12 +13,9 @@ import (
 
 // Incomes
 func GetIncomes(c *gin.Context) {
-	var incomes []models.Income
-	if err := config.DB.Preload("User").Find(&incomes).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, incomes)
+	params := ParsePaginateParams(c)
+	resp := Paginate(config.DB.Preload("User"), params, &[]models.Income{})
+	c.JSON(http.StatusOK, resp)
 }
 
 func CreateIncome(c *gin.Context) {
@@ -44,12 +41,9 @@ func CreateIncome(c *gin.Context) {
 
 // Expenses
 func GetExpenses(c *gin.Context) {
-	var expenses []models.Expense
-	if err := config.DB.Preload("Installments").Find(&expenses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, expenses)
+	params := ParsePaginateParams(c)
+	resp := Paginate(config.DB.Preload("Installments"), params, &[]models.Expense{})
+	c.JSON(http.StatusOK, resp)
 }
 
 func CreateExpense(c *gin.Context) {

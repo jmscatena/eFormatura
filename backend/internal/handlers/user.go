@@ -60,20 +60,17 @@ func Register(c *gin.Context) {
 }
 
 func GetUsers(c *gin.Context) {
-	var users []models.User
-	log.Println("GetUsers handler called")
-	if err := config.DB.Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
-		return
+	params := ParsePaginateParams(c)
+	resp := Paginate(config.DB, params, &[]models.User{})
+
+	// Filter passwords from paginated result
+	if data, ok := resp.Data.(*[]models.User); ok {
+		for i := range *data {
+			(*data)[i].Password = ""
+		}
 	}
 
-		log.Println("Users fetched, filtering passwords")
-	for i := range users {
-		users[i].Password = ""
-	}
-
-	log.Println("Sending response with", len(users), "users")
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, resp)
 }
 
 type UpdateUserRequest struct {
