@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
-	"sync"
 	"time"
 
 	"backend/config"
@@ -16,50 +14,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var (
-	loginAttempts = make(map[string]int)
-	loginMu       sync.Mutex
-	loginReset    = time.Minute * 5
-)
 
-// maxLoginAttempts define o limite de tentativas antes de bloquear
-const maxLoginAttempts = 5
-
-// loginRateLimiter implementa um rate limiter simples baseado em IP
-func loginRateLimiter() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ip := c.ClientIP()
-
-		loginMu.Lock()
-		attempts := loginAttempts[ip]
-		loginMu.Unlock()
-
-		if attempts >= maxLoginAttempts {
-			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "Rate limit exceeded. Tente novamente em 5 minutos.",
-			})
-			c.Abort()
-			return
-		}
-
-		c.Next()
-
-		// Incrementa tentativas apenas se falhou
-		if status := c.Writer.Status(); status == http.StatusUnauthorized {
-			loginMu.Lock()
-			loginAttempts[ip]++
-			loginMu.Unlock()
-
-			// Reset após o tempo definido
-			go func() {
-				time.Sleep(loginReset)
-				loginMu.Lock()
-				loginAttempts[ip] = 0
-				loginMu.Unlock()
-			}()
-		}
-	}
-}
 
 func main() {
 	if err := godotenv.Load("../../.env"); err != nil {
@@ -69,7 +24,15 @@ func main() {
 	config.ConnectDB()
 	models.AutoMigrate(config.DB)
 
+	// Inicializar Redis para rate limiting persistente
+	middleware.InitRedis()
+
 	r := gin.Default()
+
+	// Health check endpoint
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 
 	// Helmet security headers — aplicar em TODAS as rotas
 	r.Use(middleware.HelmetMiddleware())
@@ -86,7 +49,7 @@ func main() {
 
 	// Rate limiter para rotas de auth (proteger contra brute force)
 	authGroup := r.Group("/auth")
-	authGroup.Use(loginRateLimiter())
+	authGroup.Use(middleware.RedisLoginRateLimiter())
 	{
 		authGroup.POST("/login", handlers.Login)
 		authGroup.POST("/register", handlers.Register)

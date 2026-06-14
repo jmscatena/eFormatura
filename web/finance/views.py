@@ -11,6 +11,7 @@ import os
 
 API_URL = os.environ.get("API_URL", "http://127.0.0.1:8080/api")
 AUTH_URL = os.environ.get("AUTH_URL", "http://127.0.0.1:8080")
+API_TIMEOUT = int(os.environ.get("API_TIMEOUT", "5"))
 
 
 def get_auth_headers(request):
@@ -37,7 +38,7 @@ def login_view(request):
             resp = requests.post(
                 f"{AUTH_URL}/login",
                 json={"email": email, "password": password},
-                timeout=2,
+                timeout=API_TIMEOUT,
             )
             if resp.status_code == 200:
                 token = resp.json().get("token")
@@ -73,8 +74,8 @@ def dashboard(request):
 
     try:
         headers = get_auth_headers(request)
-        incomes_resp = requests.get(f"{API_URL}/incomes", headers=headers, timeout=2)
-        expenses_resp = requests.get(f"{API_URL}/expenses", headers=headers, timeout=2)
+        incomes_resp = requests.get(f"{API_URL}/incomes", headers=headers, timeout=API_TIMEOUT)
+        expenses_resp = requests.get(f"{API_URL}/expenses", headers=headers, timeout=API_TIMEOUT)
 
         incomes = incomes_resp.json() if incomes_resp.status_code == 200 else []
         expenses = expenses_resp.json() if expenses_resp.status_code == 200 else []
@@ -155,7 +156,7 @@ def incomes_list(request):
     headers = get_auth_headers(request)
     incomes = []
     try:
-        resp = requests.get(f"{API_URL}/incomes", headers=headers, timeout=2)
+        resp = requests.get(f"{API_URL}/incomes", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
             incomes = resp.json()
     except requests.exceptions.RequestException:
@@ -193,7 +194,7 @@ def income_create(request):
             "category": request.POST.get("category"),
         }
         requests.post(
-            f"{API_URL}/incomes", json=data, headers=get_auth_headers(request), timeout=2
+            f"{API_URL}/incomes", json=data, headers=get_auth_headers(request), timeout=API_TIMEOUT
         )
         return redirect("incomes_list")
     return render(request, "finance/form_income.html")
@@ -203,7 +204,7 @@ def income_create(request):
 def income_delete(request, id):
     if request.method == "POST":
         try:
-            resp = requests.delete(f"{API_URL}/incomes/{id}", headers=get_auth_headers(request), timeout=2)
+            resp = requests.delete(f"{API_URL}/incomes/{id}", headers=get_auth_headers(request), timeout=API_TIMEOUT)
             if resp.status_code not in (200, 204):
                 messages.error(request, f"Erro ao excluir: {resp.json().get('error', 'Erro desconhecido')}")
             else:
@@ -221,7 +222,7 @@ def notifications_list(request):
     notifications = []
 
     try:
-        resp = requests.get(f"{API_URL}/notifications", headers=headers, timeout=2)
+        resp = requests.get(f"{API_URL}/notifications", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
             notifications = resp.json()
     except requests.exceptions.RequestException:
@@ -240,7 +241,7 @@ def expenses_list(request):
     headers = get_auth_headers(request)
     expenses = []
     try:
-        resp = requests.get(f"{API_URL}/expenses", headers=headers, timeout=2)
+        resp = requests.get(f"{API_URL}/expenses", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
             expenses = resp.json()
     except requests.exceptions.RequestException:
@@ -278,7 +279,7 @@ def expense_create(request):
             "first_payment_date": request.POST.get("first_payment_date", ""),
         }
         requests.post(
-            f"{API_URL}/expenses", json=data, headers=get_auth_headers(request), timeout=2
+            f"{API_URL}/expenses", json=data, headers=get_auth_headers(request), timeout=API_TIMEOUT
         )
         return redirect("expenses_list")
     return render(request, "finance/form_expense.html")
@@ -288,7 +289,7 @@ def expense_create(request):
 def expense_delete(request, id):
     if request.method == "POST":
         try:
-            resp = requests.delete(f"{API_URL}/expenses/{id}", headers=get_auth_headers(request), timeout=2)
+            resp = requests.delete(f"{API_URL}/expenses/{id}", headers=get_auth_headers(request), timeout=API_TIMEOUT)
             if resp.status_code not in (200, 204):
                 messages.error(request, f"Erro ao excluir: {resp.json().get('error', 'Erro desconhecido')}")
             else:
@@ -305,7 +306,7 @@ def installment_pay(request, id):
             resp = requests.put(
                 f"{API_URL}/installments/{id}/pay",
                 headers=get_auth_headers(request),
-                timeout=2
+                timeout=API_TIMEOUT
              )
             if resp.status_code == 200:
                 messages.success(request, "Parcela paga com sucesso!")
@@ -326,7 +327,7 @@ def user_create(request):
              "role": "comum",
          }
         try:
-            resp = requests.post(f"{AUTH_URL}/register", json=data, timeout=2)
+            resp = requests.post(f"{AUTH_URL}/register", json=data, timeout=API_TIMEOUT)
             if resp.status_code == 201:
                 messages.success(request, "Usuário criado com sucesso!")
                 return redirect("dashboard")
@@ -365,7 +366,7 @@ def users_list(request):
             f"{API_URL}/users/{user_id}",
             json=data,
             headers=get_auth_headers(request),
-            timeout=2,
+            timeout=API_TIMEOUT,
           )
         if resp.status_code == 200:
             messages.success(request, "Usuário atualizado com sucesso!")
@@ -388,7 +389,7 @@ def users_list(request):
                 f"{API_URL}/users/{user_id}/password",
                 json=data,
                 headers=get_auth_headers(request),
-                timeout=2,
+                timeout=API_TIMEOUT,
               )
             if resp.status_code == 200:
                 messages.success(request, "Senha redefinida com sucesso!")
@@ -403,7 +404,7 @@ def users_list(request):
             f"{API_URL}/users/{user_id}/disable",
             json=data,
             headers=get_auth_headers(request),
-            timeout=2,
+            timeout=API_TIMEOUT,
           )
         if resp.status_code == 200:
             status = "Desativado" if disabled else "Reativado"
@@ -419,7 +420,7 @@ def render_users_list(request):
     headers = get_auth_headers(request)
     users = []
     try:
-        resp = requests.get(f"{API_URL}/users", headers=headers, timeout=2)
+        resp = requests.get(f"{API_URL}/users", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
             users = resp.json()
     except requests.exceptions.RequestException:
