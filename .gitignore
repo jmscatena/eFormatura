@@ -22,3 +22,12 @@ go.sum
 *.iml
 *.xml
 *.sqlite3
+/backend/server
+/.idea
+/.vscode
+.gitignore
+.DS_Store
+.opencode/skills/ui-ux-pro-max/data/charts.csv
+/.opencode
+*.csv
+/.DS_Store
