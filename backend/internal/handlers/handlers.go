@@ -149,12 +149,9 @@ func PayInstallment(c *gin.Context) {
 		return
 	}
 
-	// IDOR Fix: Admin podem pagar qualquer parcela, users comuns apenas suas
+	// Admin podem pagar qualquer parcela
 	userRole, exists := c.Get("role")
-	if exists && userRole.(string) == "comum" {
-		// Users comuns só podem pagar parcelas de suas despesas
-		// Verificar se a instalação pertence a algum usuário admin
-		// Para simplificar, requerer admin para pagar parcelas
+	if !exists || userRole.(string) != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
 		return
 	}

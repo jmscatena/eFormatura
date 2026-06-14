@@ -1,9 +1,11 @@
 import requests
 import jwt
+import json
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseForbidden, HttpResponseBadRequest
 
 import os
 
@@ -40,7 +42,10 @@ def login_view(request):
             if resp.status_code == 200:
                 token = resp.json().get("token")
                 # Get JWT secret from backend config or environment
-                jwt_secret = os.environ.get("JWT_SECRET", "")
+                jwt_secret = os.environ.get("JWT_SECRET")
+                if not jwt_secret:
+                    import logging
+                    logging.critical("JWT_SECRET não configurado! JWT será decodificado sem verificação!")
                 if jwt_secret:
                     decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
                 else:
@@ -435,3 +440,23 @@ def render_users_list(request):
             "is_admin": request.is_admin,
         },
     )
+
+
+def webhook_notifications(request):
+    """Recebe notificações do backend Go via webhook."""
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    
+    # Verificar autenticação do webhook
+    webhook_secret = request.META.get('HTTP_X_WEBHOOK_SECRET', '')
+    if webhook_secret != os.environ.get('WEBHOOK_SECRET', ''):
+        return HttpResponseForbidden("Webhook secret invalid")
+    
+    try:
+        data = json.loads(request.body)
+        # Salvar notificação no banco ou processar imediatamente
+        title = data.get('title', 'Notificação')
+        messages.info(request, f"Notificação: {title}")
+        return HttpResponse(status=200)
+    except Exception as e:
+        return HttpResponseBadRequest(str(e))

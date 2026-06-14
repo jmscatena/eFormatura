@@ -14,5 +14,6 @@ urlpatterns = [
     path("expenses/<int:id>/delete/", views.expense_delete, name="expense_delete"),
     path("installments/<int:id>/pay/", views.installment_pay, name="installment_pay"),
     path("notifications/", views.notifications_list, name="notifications_list"),
+    path("api/webhook/notifications/", views.webhook_notifications, name="webhook_notifications"),
     path("users/", views.users_list, name="users_list"),
 ]

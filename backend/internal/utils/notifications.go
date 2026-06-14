@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // CreateNotification cria uma notificação para um usuário
@@ -62,12 +63,21 @@ func ForwardNotificationToDjango(notification models.Notification) {
 		return
 	}
 
-	// Enviar requisição
-	resp, err := http.Post(
-		djangoWebhook,
-		"application/json",
-		bytes.NewBuffer(jsonData),
-	)
+	// Montar requisição com autenticação
+	webhookSecret := os.Getenv("WEBHOOK_SECRET")
+	req, err := http.NewRequest("POST", djangoWebhook, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Erro ao criar requisição webhook: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if webhookSecret != "" {
+		req.Header.Set("X-Webhook-Secret", webhookSecret)
+	}
+
+	// Enviar requisição com timeout
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Erro ao enviar notificação para Django: %v", err)
 		return
