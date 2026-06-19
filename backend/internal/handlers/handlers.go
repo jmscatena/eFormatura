@@ -32,6 +32,10 @@ func CreateIncome(c *gin.Context) {
 		income.UserID = &userIDUint
 	}
 
+	if income.Date.IsZero() {
+		income.Date = time.Now()
+	}
+
 	if err := config.DB.Create(&income).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

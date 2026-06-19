@@ -6,8 +6,10 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Carregar .env — busca no diretório web/ e na raiz do projeto
-load_dotenv(BASE_DIR / ".env")                 # web/.env (se existir)
-load_dotenv(BASE_DIR.parent / ".env")           # raiz do projeto (Formatura/.env)
+load_dotenv(".env")                 # web/.env (se existir)
+
+#load_dotenv(BASE_DIR / ".env")                 # web/.env (se existir)
+#load_dotenv(BASE_DIR.parent / ".env")           # raiz do projeto (Formatura/.env)
 
 
 # Quick-start development settings - unsuitable for production
@@ -15,8 +17,8 @@ load_dotenv(BASE_DIR.parent / ".env")           # raiz do projeto (Formatura/.en
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "change-me-in-production")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
-
+#DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
+DEBUG = True
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "formatura.sytes.net,www.formatura.sytes.net,localhost,127.0.0.1").split(",")
