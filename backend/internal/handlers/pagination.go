@@ -25,7 +25,7 @@ type PaginateResponse struct {
 func ParsePaginateParams(c *gin.Context) PaginateParams {
 	page, _ := c.GetQuery("page")
 	limit, _ := c.GetQuery("limit")
-	orderBy := c.DefaultQuery("order_by", "created_at")
+	orderBy := c.DefaultQuery("order_by", "id")
 
 	p := PaginateParams{
 		Page:    1,
