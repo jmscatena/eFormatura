@@ -36,3 +36,4 @@ secrets/.env
 secrets/backend.env
 secrets/frontend.env
 secrets/postgres.env
+backend/main

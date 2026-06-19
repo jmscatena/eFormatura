@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"backend/config"
@@ -16,7 +17,15 @@ import (
 
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
-		log.Println("No .env file found, relying on environment variables")
+		if err2 := godotenv.Load("../.env"); err2 != nil {
+			log.Println("No .env file found, relying on environment variables")
+		} else {
+			log.Println("Loaded .env from parent directory")
+		}
+	}
+
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Println("WARNING: JWT_SECRET environment variable is empty!")
 	}
 
 	config.ConnectDB()

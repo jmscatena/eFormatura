@@ -85,9 +85,15 @@ def login_view(request):
                 request.session["user_role"] = decoded.get("role", "comum")
                 return redirect("dashboard")
             else:
-                messages.error(request, "Credenciais inválidas.")
+                try:
+                    err_msg = resp.json().get("error", "Credenciais inválidas.")
+                except Exception:
+                    err_msg = f"Erro no login (Status {resp.status_code})"
+                messages.error(request, err_msg)
         except Exception as e:
-            messages.error(request, "Falha na comunicação com o servidor.")
+            import logging
+            logging.exception("Erro no login_view:")
+            messages.error(request, f"Erro interno ao realizar login: {e}")
 
     return render(request, "finance/login.html")
 
