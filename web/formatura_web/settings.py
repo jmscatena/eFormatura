@@ -1,9 +1,14 @@
 from pathlib import Path
 import os
 import sqlite3 as py_sql
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carregar .env — busca no diretório web/ e na raiz do projeto
+load_dotenv(BASE_DIR / ".env")                 # web/.env (se existir)
+load_dotenv(BASE_DIR.parent / ".env")           # raiz do projeto (Formatura/.env)
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,8 +42,8 @@ if DEBUG:
 # SSL/proxy trust (Nginx reverse proxy)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False  # Nginx handles SSL
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 
 # Application definition
@@ -56,14 +61,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
        "django.middleware.security.SecurityMiddleware",
        "finance.middleware.security_headers_middleware",
-       "finance.middleware.login_rate_limiter",
        "django.contrib.sessions.middleware.SessionMiddleware",
        "django.middleware.common.CommonMiddleware",
        "django.middleware.csrf.CsrfViewMiddleware",
        "django.contrib.auth.middleware.AuthenticationMiddleware",
+       "finance.middleware.login_rate_limiter",
        "django.contrib.messages.middleware.MessageMiddleware",
        "django.middleware.clickjacking.XFrameOptionsMiddleware",
-       "django.middleware.csrf.CsrfViewMiddleware",
        "finance.middleware.jwt_auth_middleware",
     ]
 

@@ -19,6 +19,19 @@ def get_auth_headers(request):
     return {"Authorization": f"Bearer {request.jwt_token}"} if request.jwt_token else {}
 
 
+def extract_paginated_data(response_json):
+    """Extrai a lista de dados de uma resposta paginada do backend.
+    
+    O backend retorna: {"data": [...], "page": 1, "limit": 50, "total": N, "total_pages": M}
+    Esta função retorna apenas a lista em "data", ou a resposta original se já for uma lista.
+    """
+    if isinstance(response_json, dict) and "data" in response_json:
+        return response_json["data"] or []
+    if isinstance(response_json, list):
+        return response_json
+    return []
+
+
 def api_request_with_retry(method, url, **kwargs):
     """Faz requisição HTTP com retry logic e exponential backoff."""
     timeout = kwargs.pop("timeout", API_TIMEOUT)
@@ -93,8 +106,8 @@ def dashboard(request):
         incomes_resp = api_request_with_retry(requests.get, f"{API_URL}/incomes", headers=headers, timeout=API_TIMEOUT)
         expenses_resp = api_request_with_retry(requests.get, f"{API_URL}/expenses", headers=headers, timeout=API_TIMEOUT)
 
-        incomes = incomes_resp.json() if incomes_resp.status_code == 200 else []
-        expenses = expenses_resp.json() if expenses_resp.status_code == 200 else []
+        incomes = extract_paginated_data(incomes_resp.json()) if incomes_resp.status_code == 200 else []
+        expenses = extract_paginated_data(expenses_resp.json()) if expenses_resp.status_code == 200 else []
 
         total_arrecadado = sum(inc.get("amount", 0) for inc in incomes)
 
@@ -174,7 +187,7 @@ def incomes_list(request):
     try:
         resp = api_request_with_retry(requests.get, f"{API_URL}/incomes", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
-            incomes = resp.json()
+            incomes = extract_paginated_data(resp.json())
     except requests.exceptions.RequestException:
         pass
 
@@ -209,7 +222,7 @@ def income_create(request):
             "amount": amount,
             "category": request.POST.get("category"),
         }
-        requests.post(
+        api_request_with_retry(requests.post,
             f"{API_URL}/incomes", json=data, headers=get_auth_headers(request), timeout=API_TIMEOUT
         )
         return redirect("incomes_list")
@@ -240,7 +253,7 @@ def notifications_list(request):
     try:
         resp = api_request_with_retry(requests.get, f"{API_URL}/notifications", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
-            notifications = resp.json()
+            notifications = extract_paginated_data(resp.json())
     except requests.exceptions.RequestException:
         pass
 
@@ -259,7 +272,7 @@ def expenses_list(request):
     try:
         resp = api_request_with_retry(requests.get, f"{API_URL}/expenses", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
-            expenses = resp.json()
+            expenses = extract_paginated_data(resp.json())
     except requests.exceptions.RequestException:
         pass
     return render(
@@ -294,7 +307,7 @@ def expense_create(request):
             "start_date": request.POST.get("start_date", ""),
             "first_payment_date": request.POST.get("first_payment_date", ""),
         }
-        requests.post(
+        api_request_with_retry(requests.post,
             f"{API_URL}/expenses", json=data, headers=get_auth_headers(request), timeout=API_TIMEOUT
         )
         return redirect("expenses_list")
@@ -438,7 +451,7 @@ def render_users_list(request):
     try:
         resp = api_request_with_retry(requests.get, f"{API_URL}/users", headers=headers, timeout=API_TIMEOUT)
         if resp.status_code == 200:
-            users = resp.json()
+            users = extract_paginated_data(resp.json())
     except requests.exceptions.RequestException:
         pass
 

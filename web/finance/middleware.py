@@ -54,7 +54,7 @@ def login_rate_limiter(get_response):
     def middleware(request):
         if (request.method == 'POST' 
             and request.path == '/login/'
-            and not request.is_authenticated):
+            and not getattr(request, 'is_authenticated', False)):
             x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', '')
             if x_forwarded_for:
                 ip = x_forwarded_for.split(',')[0].strip()

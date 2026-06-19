@@ -31,3 +31,8 @@ go.sum
 /.opencode
 *.csv
 /.DS_Store
+secrets/*.env
+secrets/.env
+secrets/backend.env
+secrets/frontend.env
+secrets/postgres.env

@@ -14,18 +14,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
-
-
 func main() {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Println("No .env file found, relying on environment variables")
 	}
 
 	config.ConnectDB()
 	models.AutoMigrate(config.DB)
 
-	// Inicializar Redis para rate limiting persistente
-	middleware.InitRedis()
+	// Inicializar rate limiter PostgreSQL para autenticação
+	middleware.InitPostgresRateLimiter()
 
 	r := gin.Default()
 
@@ -47,17 +45,13 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Rate limiter para rotas de auth (proteger contra brute force)
-	authGroup := r.Group("/auth")
-	authGroup.Use(middleware.RedisLoginRateLimiter())
+	// Auth routes — com rate limiter PostgreSQL (proteger contra brute force)
+	authGroup := r.Group("")
+	authGroup.Use(middleware.PostgresLoginRateLimiter())
 	{
 		authGroup.POST("/login", handlers.Login)
 		authGroup.POST("/register", handlers.Register)
 	}
-
-	// Auth and User routes — sem rate limiter (já está no group)
-	r.POST("/login", handlers.Login)
-	r.POST("/register", handlers.Register)
 
 	protected := r.Group("/api")
 	protected.Use(middleware.AuthRequired())

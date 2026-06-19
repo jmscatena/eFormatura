@@ -45,7 +45,10 @@ func AuthRequired() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", claims["user_id"])
+		// JWT MapClaims decodifica números como float64
+		if uid, ok := claims["user_id"].(float64); ok {
+			c.Set("userID", uint(uid))
+		}
 		c.Set("role", claims["role"])
 
 		c.Next()

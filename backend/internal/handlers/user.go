@@ -61,13 +61,12 @@ func Register(c *gin.Context) {
 
 func GetUsers(c *gin.Context) {
 	params := ParsePaginateParams(c)
-	resp := Paginate(config.DB, params, &[]models.User{})
+	var users []models.User
+	resp := Paginate(config.DB, params, &users)
 
-	// Filter passwords from paginated result
-	if data, ok := resp.Data.(*[]models.User); ok {
-		for i := range *data {
-			(*data)[i].Password = ""
-		}
+	// Limpar passwords do resultado paginado
+	for i := range users {
+		users[i].Password = ""
 	}
 
 	c.JSON(http.StatusOK, resp)
