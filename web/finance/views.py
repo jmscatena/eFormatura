@@ -71,16 +71,8 @@ def login_view(request):
             )
             if resp.status_code == 200:
                 token = resp.json().get("token")
-                # Get JWT secret from backend config or environment
-                jwt_secret = os.environ.get("JWT_SECRET")
-                if not jwt_secret:
-                    import logging
-                    logging.critical("JWT_SECRET não configurado! JWT será decodificado sem verificação!")
-                if jwt_secret:
-                    decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                else:
-                    # Fallback: decode without verification if no secret configured
-                    decoded = jwt.decode(token, options={"verify_signature": False})
+                # Decodificar sem verificar a assinatura — o Django confia na API Go que emitiu o token
+                decoded = jwt.decode(token, options={"verify_signature": False})
                 request.session["jwt_token"] = token
                 request.session["user_role"] = decoded.get("role", "comum")
                 return redirect("dashboard")
