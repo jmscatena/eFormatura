@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import sqlite3 as py_sql
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -111,9 +110,6 @@ DATABASES = {
          },
      }
  }
-
- # Additional SQLite security settings
-py_sql.enable_shared_cache(False)  # Prevenir race conditions
 
 
 # Password validation
