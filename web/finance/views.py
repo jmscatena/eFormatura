@@ -184,7 +184,7 @@ def incomes_list(request):
     incomes = []
     try:
         resp = api_request_with_retry(requests.get, f"{API_URL}/incomes", headers=headers, timeout=API_TIMEOUT)
-        print(resp)
+        print(resp.content)
         if resp.status_code == 200:
             incomes = extract_paginated_data(resp.json())
     except requests.exceptions.RequestException:
